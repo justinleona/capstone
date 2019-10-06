@@ -7,6 +7,8 @@ int main()
 
 
     csh handle;
+    
+    printf("hello world");
 
 
 
