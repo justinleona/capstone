@@ -7,6 +7,7 @@ DEP := $(SRC:%.cc=%.d)
 
 CPPFLAGS += -ggdb
 LDFLAGS += -no-pie
+LDLIBS += -lcapstone
 
 all: $(EXE) $(ASM)
 
