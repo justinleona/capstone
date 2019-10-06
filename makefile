@@ -1,5 +1,6 @@
 EXE = myapp
 
+CXX := clang++
 SRC := $(wildcard *.cc)
 OBJ := $(SRC:%.cc=%.o)
 ASM := $(SRC:%.cc=%.s)
