@@ -1,28 +1,39 @@
-#include <stdio.h>
-#include <iostream>
 #include <capstone/capstone.h>
+#include <elf.h>
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <iterator>
 #include <vector>
+#include "capstone.h"
 
 using namespace std;
+
+typedef istream_iterator<char> ist_iter;
+
+template <typename T>
+struct StaticCast {
+  template <typename U>
+  T operator()(const U& rhs) {
+    return static_cast<T>(rhs);
+  }
+};
 
 /*
  * trivial decompiler for a block of raw bytes using the capstone library
  */
-int main() 
-{
-    csh handle;
-    cs_insn *insn;
-    
-    if( cs_open(CS_ARCH_X86, CS_MODE_64, &handle) != CS_ERR_OK) 
-        return -1;
+int main() {
+  // this object must be valid for any reference to any capstone type - e.g.,
+  // cs_insn
+  capstone cs(CS_ARCH_X86, CS_MODE_64);
+  cs.setAtt();
 
-    const uint8_t code[] = {0x55,0x48,0x8b,0x05,0xb8,0x13,0x00,0x00};
-    auto count = cs_disasm(handle,code, sizeof(code), 0x1000, 0, &insn);
+  vector<uint8_t> code;
+  ifstream ist("./myapp", std::ifstream::binary);
+  transform(ist_iter(ist), ist_iter(), back_inserter(code), StaticCast<uint8_t>());
 
-    std::cout << std::hex;
-    for(auto i : std::vector<cs_insn>(insn, insn+count)) 
-        std::cout << "0x" << i.address << " " << i.mnemonic << " " << i.op_str << std::endl;
-    cs_close(&handle);
-
-    return 0;
+  cout << hex;
+  for (const auto& i : cs.disasm(code, 0x1000, 0))
+    std::cout << "0x" << i.address << " " << i.mnemonic << " " << i.op_str << std::endl;
+  return 0;
 }
