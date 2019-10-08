@@ -25,9 +25,9 @@ $(EXE): $(OBJ)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CFLAGS) $< -MM >$@
 
 clean:
-	-rm src/*.o
-	-rm src/*.s
-	-rm src/*.d
+	-rm *.o
+	-rm *.s
+	-rm *.d
 	-rm myapp
 
 -include $(DEP)

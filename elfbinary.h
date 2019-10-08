@@ -5,13 +5,12 @@
 #include <istream>
 #include <vector>
 #include <string>
+#include "elfsectionheader.h"
 
 class ElfBinary {
   Elf64_Ehdr header;
 public:
-  /** 
-   * Use the Elf header to read the section names from a stream of bytes 
-   */
+  std::vector<ElfSectionHeader> getSections(std::istream& ist);
   std::vector<std::string> getSectionNames(std::istream& ist);
   
   friend std::ostream& operator<<(std::ostream& ost,const ElfBinary& header);

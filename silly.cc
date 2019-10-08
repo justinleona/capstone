@@ -1,9 +1,9 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <vector>
 #include "capstone.h"
-#include "static_cast.h"
 #include "elfbinary.h"
+#include "static_cast.h"
 
 using namespace std;
 
@@ -18,17 +18,16 @@ int main() {
 
   ElfBinary elf;
   ist >> elf;
-  for(string s : elf.getSectionNames(ist)) 
-  {
-    cout << "string table name: " << s << endl;
-  }
 
-/*
- *  ist.seekg(execution_entry);
- *  transform(ist_iter(ist), ist_iter(), back_inserter(bin), static_cast_f<uint8_t>());
- *
- *  for (const auto& i : cs.disasm(bin, 0x1000, 0))
- *    std::cout << "0x" << i.address << " " << i.mnemonic << " " << i.op_str << std::endl;
- */
+  const vector<ElfSectionHeader>& s = elf.getSections(ist);
+  const vector<string>& names = elf.getSectionNames(ist);
+
+  /*
+   *  ist.seekg(execution_entry);
+   *  transform(ist_iter(ist), ist_iter(), back_inserter(bin), static_cast_f<uint8_t>());
+   *
+   *  for (const auto& i : cs.disasm(bin, 0x1000, 0))
+   *    std::cout << "0x" << i.address << " " << i.mnemonic << " " << i.op_str << std::endl;
+   */
   return 0;
 }

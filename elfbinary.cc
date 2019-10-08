@@ -1,9 +1,12 @@
 #include "elfbinary.h"
 #include <iostream>
+#include <fstream>
+#include <algorithm>
 
 using namespace std;
 
-istream& operator>>(istream& ist, ElfBinary& elf) {
+istream& operator>>(istream& ist, ElfBinary& elf) 
+{
   ist.seekg(0);
   ist.read((char*)&elf.header, sizeof(Elf64_Ehdr));
   return ist;
@@ -23,6 +26,20 @@ ostream& operator<<(ostream& ost, const ElfBinary& elf) {
   return ost;
 }
 
+vector<ElfSectionHeader> ElfBinary::getSections(istream& ist)
+{
+  auto section_table_count = header.e_shnum;
+  auto section_offset = header.e_shoff;
+
+  vector<Elf64_Shdr> headers(section_table_count);
+  ist.seekg(section_offset);
+  ist.read((char*)headers.data(), headers.size() * sizeof(Elf64_Shdr));
+
+  vector<ElfSectionHeader> sections;
+  transform(headers.begin(), headers.end(), back_inserter(sections), ElfSectionHeader::create);
+  return sections;
+}
+
 vector<string> ElfBinary::getSectionNames(istream& ist) {
   auto section_offset = header.e_shoff;
   auto section_table_entry_size = header.e_shentsize;
@@ -30,13 +47,11 @@ vector<string> ElfBinary::getSectionNames(istream& ist) {
   auto section_table_index = header.e_shstrndx;
   auto section_size = header.e_shentsize;
 
-  vector<Elf64_Shdr> headers(section_table_count);
-  ist.seekg(section_offset);
-  ist.read((char*)headers.data(), headers.size() * sizeof(Elf64_Shdr));
-
+  const auto& headers = getSections(ist);
   const auto& str_table = headers[section_table_index];
-  auto offset = str_table.sh_offset;
-  auto size = str_table.sh_size;
+
+  auto offset = str_table.getOffset();
+  auto size = str_table.getSize();
 
   cout << hex;
   cout << "string table offset: " << offset << endl;
@@ -48,13 +63,12 @@ vector<string> ElfBinary::getSectionNames(istream& ist) {
     string str;
     for (unsigned int k = 0; j != size && k != section_table_entry_size; ++j, ++k) {
       char c = ist.get();
-      if(c == '\0')
+      if (c == '\0')
         break;
       str += c;
     }
     section_names.push_back(str);
   }
 
-  cout << "string table index: " << str_table.sh_name << endl;
   return section_names;
 }
