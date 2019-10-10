@@ -1,10 +1,12 @@
 EXE = myapp
 
+OBJDIR = obj
+ASMDIR = asm
 CXX := clang++ -std=c++2a
 SRC := $(wildcard *.cc)
-OBJ := $(SRC:%.cc=%.o)
-ASM := $(SRC:%.cc=%.s)
-DEP := $(SRC:%.cc=%.d)
+OBJ := $(SRC:%.cc=$(OBJDIR)/%.o)
+ASM := $(SRC:%.cc=$(ASMDIR)/%.s)
+DEP := $(SRC:%.cc=$(OBJDIR)/%.d)
 
 CPPFLAGS += -ggdb
 LDFLAGS += -no-pie
@@ -15,19 +17,19 @@ all: $(EXE) $(ASM)
 $(EXE): $(OBJ)
 	$(CXX) $(LDFLAGS) $(OBJ) -o $@ $(LDLIBS)
 
-%.o:%.cc
+$(OBJDIR)/%.o:%.cc
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CFLAGS) -c $< -o $@
 
-%.s:%.cc
+$(ASMDIR)/%.s:%.cc
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CFLAGS) -S $< -o $@
 
-%.d:%.cc
+$(OBJDIR)/%.d:%.cc
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CFLAGS) $< -MM >$@
 
 clean:
-	-rm *.o
-	-rm *.s
-	-rm *.d
+	-rm $(OBJDIR)/*.o
+	-rm $(ASMDIR)/*.s
+	-rm $(OBJDIR)/*.d
 	-rm myapp
 
 -include $(DEP)

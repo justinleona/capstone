@@ -1,5 +1,6 @@
 #include "capstone.h"
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -21,13 +22,15 @@ capstone::~capstone() {
   cs_close(&handle);
 }
 
-vector<cs_insn> capstone::disasm(const vector<uint8_t>& code, uint64_t address, size_t count) {
+vector<cs_insn> capstone::disasm(const uint8_t* code, size_t size, uint64_t address, size_t count) {
   cs_insn* insn;
-  size_t size = cs_disasm(handle, code.data(), code.size(), address, count, &insn);
-  auto p = shared_ptr<cs_insn>(insn, bind(cs_free, _1, size));
+  cout << "attempting to parse: " << hex << size << " bytes" << endl;
+  size_t i_sz = cs_disasm(handle, code, size, address, count, &insn);
 
-  // this is relatively heavy since it copies all the structs...
-  // it also doesn't guarantee safety since the internal structs include
-  // pointers but it does make the return intrinsically iterable
-  return std::vector<cs_insn>(insn, insn + size);
+  //this doesn't work because it de-allocs the underlying cs_insn as well ><
+  //auto p = shared_ptr<cs_insn>(insn, bind(cs_free, _1, size));
+  cout << "parsed instructions: " << hex << i_sz << endl;
+
+  //copy of each element in a vector
+  return vector<cs_insn>(insn, insn+i_sz);
 }
