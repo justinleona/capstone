@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include "capstone.h"
+#include "capstonebuilder.h"
 #include "elfbinary.h"
 #include "indent.h"
 #include "static_cast.h"
@@ -27,8 +28,6 @@ void dumpBytes(uint8_t bytes[], size_t size, uint64_t offset) {
  */
 int main() {
   try {
-    capstone cs(CS_ARCH_X86, CS_MODE_64);
-    cs.setAtt();
     ifstream ist("/usr/bin/ls", ifstream::binary);
 
     Indent indent;
@@ -38,11 +37,9 @@ int main() {
 
     const vector<char>& names = elf.getSectionNames(ist);
     const vector<ElfSectionHeader>& sections = elf.getSections(ist);
-    //for (const ElfSectionHeader& h : sections) {
-      //cout << indent++ << h;
-      //cout << --indent << endl;
-    //}
 
+    CapstoneBuilder csb;
+    csb.setAtt();
     for (const ElfSectionHeader& h : sections) {
       auto index = h.getNameIndex();
 
@@ -62,13 +59,11 @@ int main() {
 
         // dumpBytes(bytes, size, offset);
 
-        //const auto& v = cs.disasm(bytes, size, offset, 0);
-        // for (const auto& i : v)
-        // cout << indent << "0x" << i.address << " " << i.mnemonic << " " << i.op_str << endl;
-        // cout << --indent << "};" << endl;
+        csb.setAddress(offset);
+        for (const cs_insn& i : csb(bytes,size)) {
+          cout << indent << "0x" << i.address << " " << i.mnemonic << " " << i.op_str << endl;
+        }
       }
-      //--indent;
-      //cout << endl;
     }
     return 0;
   } catch (char const* msg) {
