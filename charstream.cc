@@ -9,7 +9,19 @@ charbuf::charbuf(char* s, size_t n) {
 }
 
 streampos charbuf::seekpos(streampos pos, ios_base::openmode which) {
-  if (which & ios_base::in) {
+  if (which & ios_base::in && which & ios_base::out) {
+    //we don't have separate buffers for in+out
+    char* begin = eback();
+    char* c = begin + pos;
+    char* end = egptr();
+
+    if (begin <= c && c < end) {
+      setg(begin, c, end);
+      setp(c, end);
+      return pos;
+    }
+  }
+  else if (which & ios_base::in) {
     char* begin = eback();
     char* c = begin + pos;
     char* end = egptr();
@@ -19,8 +31,7 @@ streampos charbuf::seekpos(streampos pos, ios_base::openmode which) {
       return pos;
     }
   }
-
-  if (which & ios_base::out) {
+  else if (which & ios_base::out) {
     char* begin = pbase();
     char* c = begin + pos;
     char* end = epptr();

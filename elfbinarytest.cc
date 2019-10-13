@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 #include "catch.hpp"
-#include "elfbinary.h"
 #include "charstream.h"
+#include "elfbinary.h"
 
 using namespace std;
 
@@ -34,8 +34,10 @@ TEST_CASE("ElfBinary loads headers", "[elfbinary]") {
 
   SECTION("verify magic number match") {
     charstream ist(s, sizeof(s));
-
     ist >> bin;
-    cout << bin;
+
+    REQUIRE( bin.getSectionHeaderOffset() == 137000 );
+    REQUIRE( bin.getSectionHeaderCount() == 29 );
+    REQUIRE( bin.getStringTableIndex() == 28 );
   }
 }

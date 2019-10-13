@@ -17,6 +17,7 @@ class ElfBinary : public Indentable {
 
   size_t getSectionHeaderOffset();
   size_t getSectionHeaderCount();
+  size_t getStringTableIndex();
 
   std::vector<ElfSectionHeader> getSections(std::istream& ist);
 

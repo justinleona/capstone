@@ -18,22 +18,18 @@ size_t ElfBinary::getSectionHeaderCount() {
   return header.e_shnum;
 }
 
+size_t ElfBinary::getStringTableIndex() {
+  return header.e_shstrndx;
+}
+
 istream& operator>>(istream& ist, ElfBinary& elf) {
   auto& hdr = elf.header;
 
   ist.seekg(0);
-  if( !ist ) {
-    cerr << "seekg is unhappy" << endl;
-    ist.clear();
-  }
-
   ist.read((char*)&hdr, sizeof(Elf64_Ehdr));
 
-  if (!ist) {
-    cerr << "attempted to read " << sizeof(Elf64_Ehdr) << " bytes" << endl;
-    cerr << ist.gcount() << " bytes read" << endl;
+  if (!ist)
     throw "failed to read complete Elf header";
-  }
   if (hdr.e_ident[0] != 0x7f || hdr.e_ident[1] != 'E' || hdr.e_ident[2] != 'L' || hdr.e_ident[3] != 'F')
     throw "magic string failed";
   return ist;
@@ -92,7 +88,6 @@ vector<char> ElfBinary::getSectionNames(istream& ist) {
 
   auto offset = str_table.getOffset();
   auto size = str_table.getSize();
-  cout << "hello" << endl;
 
   ist.seekg(offset);
   vector<char> section_names(size);
