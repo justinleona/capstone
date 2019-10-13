@@ -70,21 +70,4 @@ int main() {
     cerr << msg << endl;
     return 1;
   }
-
-  /*
-    int i = 0;
-    cout << indent++ << "section header names" << endl;
-    for (auto str : names)
-      cout << indent << dec << i++ << ": " << str << endl;
-
-    cout << elf;
-    for (auto hdr : s)
-      cout << hdr;
-
-    ist.seekg(execution_entry);
-    transform(ist_iter(ist), ist_iter(), back_inserter(bin), static_cast_f<uint8_t>());
-
-    for (const auto& i : cs.disasm(bin, 0x1000, 0))
-      std::cout << "0x" << i.address << " " << i.mnemonic << " " << i.op_str << std::endl;
-  */
 }

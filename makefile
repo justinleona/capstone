@@ -1,10 +1,9 @@
 EXE = myapp
-
+CATCH = catch
 OBJDIR = obj
 ASMDIR = asm
 CXX := clang++ -std=c++2a
 SRC := $(wildcard *.cc)
-OBJ := $(SRC:%.cc=$(OBJDIR)/%.o)
 ASM := $(SRC:%.cc=$(ASMDIR)/%.s)
 DEP := $(SRC:%.cc=$(OBJDIR)/%.d)
 
@@ -12,10 +11,13 @@ CPPFLAGS += -ggdb
 LDFLAGS += -no-pie
 LDLIBS += -lcapstone
 
-all: $(EXE) $(ASM)
+all: $(EXE) $(CATCH) $(ASM)
 
-$(EXE): $(OBJ)
-	$(CXX) $(LDFLAGS) $(OBJ) -o $@ $(LDLIBS)
+$(EXE): $(filter-out $(OBJDIR)/catch.o, $(SRC:%.cc=$(OBJDIR)/%.o))
+	$(CXX) $(LDFLAGS) $? -o $@ $(LDLIBS)
+
+$(CATCH): $(filter-out $(OBJDIR)/silly.o, $(SRC:%.cc=$(OBJDIR)/%.o))
+	$(CXX) $(LDFLAGS) $? -o $@ $(LDLIBS)
 
 $(OBJDIR)/%.o:%.cc
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CFLAGS) -c $< -o $@
@@ -30,6 +32,7 @@ clean:
 	-rm $(OBJDIR)/*.o
 	-rm $(ASMDIR)/*.s
 	-rm $(OBJDIR)/*.d
-	-rm myapp
+	-rm $(EXE)
+	-rm $(CATCH)
 
 -include $(DEP)
