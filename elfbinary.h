@@ -10,7 +10,8 @@
 
 class ElfBinary : public Indentable {
   Elf64_Ehdr header;
-  public:
+
+ public:
   ElfBinary();
   ElfBinary(Indent& indent);
 

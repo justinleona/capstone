@@ -10,6 +10,9 @@ LDLIBS += -lcapstone
 
 all: $(EXE) $(CATCH)
 
+test: $(CATCH)
+	./$(CATCH)
+
 # this let's us print make variables easily for debugging
 print-% : ; @echo $* = $($*)
 
