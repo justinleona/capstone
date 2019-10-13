@@ -10,9 +10,12 @@
 
 class ElfBinary : public Indentable {
   Elf64_Ehdr header;
- public:
+  public:
   ElfBinary();
   ElfBinary(Indent& indent);
+
+  size_t getSectionHeaderOffset();
+  size_t getSectionHeaderCount();
 
   std::vector<ElfSectionHeader> getSections(std::istream& ist);
 

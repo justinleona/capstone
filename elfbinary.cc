@@ -10,11 +10,25 @@ ElfBinary::ElfBinary() {}
 
 ElfBinary::ElfBinary(Indent& indent) : Indentable(indent) {}
 
+size_t ElfBinary::getSectionHeaderOffset() {
+  return header.e_shoff;
+}
+
+size_t ElfBinary::getSectionHeaderCount() {
+  return header.e_shnum;
+}
+
 istream& operator>>(istream& ist, ElfBinary& elf) {
   auto& hdr = elf.header;
 
   ist.seekg(0);
   ist.read((char*)&hdr, sizeof(Elf64_Ehdr));
+
+  if( !ist)  {
+    cerr << "attempted to read " << sizeof(Elf64_Ehdr) << " bytes" << endl;
+    cerr << ist.gcount() << " bytes read" <<  endl;
+    throw "failed to read complete Elf header";
+  }
   if (hdr.e_ident[0] != 0x7f || hdr.e_ident[1] != 'E' || hdr.e_ident[2] != 'L' || hdr.e_ident[3] != 'F')
     throw "magic string failed";
   return ist;

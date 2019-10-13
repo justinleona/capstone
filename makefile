@@ -1,38 +1,36 @@
 EXE = myapp
 CATCH = catch
-OBJDIR = obj
-ASMDIR = asm
 CXX := clang++ -std=c++2a
-SRC := $(wildcard *.cc)
-ASM := $(SRC:%.cc=$(ASMDIR)/%.s)
-DEP := $(SRC:%.cc=$(OBJDIR)/%.d)
+TST := $(wildcard *test.cc)
+SRC := $(filter-out $(TST), $(wildcard *.cc))
 
 CPPFLAGS += -ggdb
 LDFLAGS += -no-pie
 LDLIBS += -lcapstone
 
-all: $(EXE) $(CATCH) $(ASM)
+all: $(EXE) $(CATCH)
 
-$(EXE): $(filter-out $(OBJDIR)/catch.o, $(SRC:%.cc=$(OBJDIR)/%.o))
-	$(CXX) $(LDFLAGS) $? -o $@ $(LDLIBS)
+# this let's us print make variables easily for debugging
+print-% : ; @echo $* = $($*)
 
-$(CATCH): $(filter-out $(OBJDIR)/silly.o, $(SRC:%.cc=$(OBJDIR)/%.o))
-	$(CXX) $(LDFLAGS) $? -o $@ $(LDLIBS)
+$(EXE):$(SRC:%.cc=obj/%.o)
+	$(CXX) $(LDFLAGS) $^ -o $(EXE) $(LDLIBS)
 
-$(OBJDIR)/%.o:%.cc
+$(CATCH):$(filter-out obj/silly.o, $(SRC:%.cc=obj/%.o)) $(TST:%.cc=obj/%.o)
+	$(CXX) $(LDFLAGS) $^ -o $(CATCH) $(LDLIBS)
+
+obj/%.o:%.cc
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CFLAGS) -c $< -o $@
 
-$(ASMDIR)/%.s:%.cc
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CFLAGS) -S $< -o $@
-
-$(OBJDIR)/%.d:%.cc
+# technically .d should depend on .cc and .h as well, this might occasionally necessitate full rebuilds
+obj/%.d:%.cc
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CFLAGS) $< -MM >$@
 
 clean:
-	-rm $(OBJDIR)/*.o
-	-rm $(ASMDIR)/*.s
-	-rm $(OBJDIR)/*.d
+	-rm obj/*.o
+	-rm asm/*.s
+	-rm obj/*.d
 	-rm $(EXE)
 	-rm $(CATCH)
 
--include $(DEP)
+include $(wildcard *.cc:%.cc=obj/%.d)
