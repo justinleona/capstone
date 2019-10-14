@@ -20,8 +20,8 @@ int main() {
     Indent indent;
     ElfBinary elf(indent);
     ist >> elf;
-    cout << elf;
 
+    cout << elf;
     const vector<char>& names = elf.getSectionNames(ist);
 
     CapstoneBuilder csb;
@@ -31,8 +31,8 @@ int main() {
     for(ElfBinary::iter i = elf.getSections(ist); i!=end; ++i ) {
       const ElfSectionHeader& h = *i;
       auto index = h.getNameIndex();
+      cout << h; 
 
-      cout << index << endl;
       if (index >= names.size()) {
         throw "invalid name index";
       }

@@ -38,9 +38,11 @@ class charstream_iterator {
 
   self& operator+=(difference_type n);
   self& operator-=(difference_type n);
+
+  bool operator==(const self& rhs) const;
  private:
   mutable std::istream* ist = NULL;
-  std::streampos g = 0; //original position of the stream
+  const int64_t g; //original position of the stream
 
   difference_type i = 0; //current relative to start
   difference_type n = 0; //maximum relative to start
@@ -48,13 +50,8 @@ class charstream_iterator {
 
 // implement all the relative operators in terms of the delta
 template <typename T>
-bool operator==(const charstream_iterator<T>& lhs, const charstream_iterator<T>& rhs) {
-  return lhs - rhs == 0;
-}
-
-template <typename T>
 bool operator!=(const charstream_iterator<T>& lhs, const charstream_iterator<T>& rhs) {
-  return lhs - rhs != 0;
+  return !(lhs == rhs);
 }
 
 template <typename T>

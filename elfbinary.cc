@@ -55,7 +55,7 @@ ElfBinary::iter ElfBinary::getSections(istream& ist) {
   auto section_table_count = header.e_shnum;
   ptrdiff_t section_offset = header.e_shoff;
 
-  cout << "getSections(" << dec << section_table_count << ", 0x" << hex << section_offset << ")" << endl;
+  //cout << "getSections(" << dec << section_table_count << ", 0x" << hex << section_offset << ")" << endl;
 
   // special section for large numbers of headers
   Elf64_Shdr init;

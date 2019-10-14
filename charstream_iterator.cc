@@ -14,14 +14,21 @@ template <typename T>
 using self = charstream_iterator<T>;
 
 template <typename T>
-charstream_iterator<T>::charstream_iterator(std::istream& ist, difference_type n) : ist(&ist), g(ist.tellg()), n(n) {}
+charstream_iterator<T>::charstream_iterator(std::istream& ist, difference_type n)
+    : ist(&ist), g(ist.tellg()), i(0), n(n) {
+  // cout << "charstream_iterator " << ist.tellg() << endl;
+}
 
 template <typename T>
 charstream_iterator<T>::charstream_iterator(const charstream_iterator& copy)
-    : ist(copy.ist), g(copy.g), i(copy.i), n(copy.n) {}
+    : ist(copy.ist), g(copy.g), i(copy.i), n(copy.n) {
+  // cout << "charstream_iterator copy " << ist->tellg() << endl;
+}
 
 template <typename T>
-charstream_iterator<T>::charstream_iterator() {}
+charstream_iterator<T>::charstream_iterator() : g(0) {
+  // cout << "charstream_iterator default " << endl;
+}
 
 template <typename T>
 value_type<T> charstream_iterator<T>::operator*() const {
@@ -34,7 +41,8 @@ value_type<T> charstream_iterator<T>::operator*() const {
     ist->seekg(curr);
   }
 
-  cout << "get(0x" << hex << curr << ")" << endl;
+  // cout << hex << g << "," << n << endl;
+  // cout << "get(0x" << hex << curr << ")" << endl;
 
   value_type t;
   ist->read((char*)&t, sizeof(value_type));
@@ -48,7 +56,23 @@ value_type<T> charstream_iterator<T>::operator[](difference_type n) const {
 
 template <typename T>
 difference_type<T> charstream_iterator<T>::operator-(self const& rhs) const {
-  return i - rhs.i;
+  //only allow for comparable iterators
+  if (ist == rhs.ist && n == rhs.n ) {
+    return i - rhs.i;
+  }
+  return 0xffffffff;
+}
+
+template <typename T>
+bool charstream_iterator<T>::operator==(const self& rhs) const {
+  //match i != end for default impl
+  if( i == n && rhs.i == rhs.n ) 
+    return true;
+
+  //match equal iterators on equivalent streams
+  if (ist == rhs.ist && n == rhs.n )
+    return i == rhs.i;
+  return false;
 }
 
 template <typename T>
