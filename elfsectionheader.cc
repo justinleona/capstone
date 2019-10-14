@@ -1,12 +1,8 @@
 #include "elfsectionheader.h"
-#include "indent.h"
 #include <iomanip>
+#include "indent.h"
 
 using namespace std;
-
-ElfSectionHeader::ElfSectionHeader(Indent& indent, const Elf64_Shdr& hdr) : Indentable(indent), hdr(hdr) {}
-
-ElfSectionHeader::ElfSectionHeader(const Elf64_Shdr& hdr) : hdr(hdr) {}
 
 uint64_t ElfSectionHeader::getOffset() const {
   return hdr.sh_offset;
@@ -48,7 +44,7 @@ bool ElfSectionHeader::isRelocationTable() const {
   return hdr.sh_type & SHT_RELA;
 }
 
-bool ElfSectionHeader::isDynamic() const { 
+bool ElfSectionHeader::isDynamic() const {
   return hdr.sh_type & SHT_DYNAMIC;
 }
 
@@ -69,3 +65,8 @@ ostream& operator<<(ostream& ost, const ElfSectionHeader& h) {
   ost << i << "offset: 0x" << hex << setfill('0') << setw(16) << h.getOffset() << endl;
   return ost << --i << "}" << endl;
 }
+
+// istream& operator>>(istream& ist, ElfSectionHeader& hdr) {
+// ist.read((char*)&hdr.hdr, sizeof(Elf64_Shdr));
+// return ist;
+//}

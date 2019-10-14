@@ -2,11 +2,13 @@
 
 #include <elf.h>
 #include <istream>
+#include <iterator>
 #include <ostream>
 #include <string>
 #include <vector>
-#include "elfsectionheader.h"
 #include "indent.h"
+#include "elfsectionheader.h"
+#include "charstream_iterator.h"
 
 class ElfBinary : public Indentable {
   Elf64_Ehdr header;
@@ -18,14 +20,14 @@ class ElfBinary : public Indentable {
   size_t getSectionHeaderOffset();
   size_t getSectionHeaderCount();
   size_t getStringTableIndex();
+  
+  using iter = charstream_iterator<Elf64_Shdr>;
 
-  std::vector<ElfSectionHeader> getSections(std::istream& ist);
+  /* range of sections, starting with the special "init" section */
+  iter getSections(std::istream& ist);
 
   /** get the raw section names table including embedded null terminators */
   std::vector<char> getSectionNames(std::istream& ist);
-
-  /** split the section names table into individual strings */
-  std::vector<std::string> parseSectionNames(std::istream& ist);
 
   friend std::ostream& operator<<(std::ostream& ost, const ElfBinary& header);
   friend std::istream& operator>>(std::istream& ist, ElfBinary& header);

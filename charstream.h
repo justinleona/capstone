@@ -25,4 +25,7 @@ class charstream : public std::istream, public std::ostream {
 
  public:
   charstream(char* s, size_t n);
+  charstream(uint8_t* s, size_t n);
 };
+
+void dumpBytes(uint8_t bytes[], size_t size, uint64_t offset);

@@ -51,41 +51,45 @@ ostream& operator<<(ostream& ost, const ElfBinary& elf) {
   return ost;
 }
 
-vector<ElfSectionHeader> ElfBinary::getSections(istream& ist) {
+ElfBinary::iter ElfBinary::getSections(istream& ist) {
   auto section_table_count = header.e_shnum;
-  auto section_offset = header.e_shoff;
+  ptrdiff_t section_offset = header.e_shoff;
 
-  vector<Elf64_Shdr> headers(section_table_count);
+  cout << "getSections(" << dec << section_table_count << ", 0x" << hex << section_offset << ")" << endl;
+
+  // special section for large numbers of headers
+  Elf64_Shdr init;
   ist.seekg(section_offset);
-  ist.read((char*)headers.data(), headers.size() * sizeof(Elf64_Shdr));
-
-  vector<ElfSectionHeader> sections;
-  auto create = [this](const Elf64_Shdr& hdr) { return ElfSectionHeader(indent, hdr); };
-  transform(headers.begin(), headers.end(), back_inserter(sections), create);
-  return sections;
-}
-
-vector<string> ElfBinary::parseSectionNames(istream& ist) {
-  const vector<char>& v = getSectionNames(ist);
-
-  string buf;
-  vector<string> section_names;
-  for (char c : v) {
-    buf += c;
-    if (c == '\0') {
-      section_names.push_back(buf);
-      buf = "";
-    }
+  ist.read((char*)&init, sizeof(Elf64_Shdr));
+  if (section_table_count == 0x0) {
+    section_table_count = init.sh_size;
   }
-  return section_names;
+
+  ist.seekg(section_offset);
+  return charstream_iterator<Elf64_Shdr>(ist, section_table_count);
 }
+
+// vector<string> ElfBinary::parseSectionNames(istream& ist) {
+// const vector<char>& v = getSectionNames(ist);
+// string buf;
+// vector<string> section_names;
+// for (char c : v) {
+// buf += c;
+// if (c == '\0') {
+// section_names.push_back(buf);
+// buf = "";
+//}
+//}
+// return section_names;
+//}
 
 vector<char> ElfBinary::getSectionNames(istream& ist) {
   auto section_table_index = header.e_shstrndx;
 
-  const auto& headers = getSections(ist);
-  const auto& str_table = headers[section_table_index];
+  // needs to handle SHN_XINDEX
 
+  auto headers = getSections(ist);
+  const ElfSectionHeader& str_table = headers[section_table_index];
   auto offset = str_table.getOffset();
   auto size = str_table.getSize();
 
@@ -94,3 +98,100 @@ vector<char> ElfBinary::getSectionNames(istream& ist) {
   ist.read(section_names.data(), size);
   return section_names;
 }
+
+/*
+ *using iter = ElfBinary::iter;
+ *using value_type = ElfSectionHeader;
+ *using difference_type = ptrdiff_t;
+ *using pointer = ElfSectionHeader*;
+ *using reference = ElfSectionHeader&;
+ *using self = ElfBinary::iter;
+ *
+ *iter::iter(istream& ist, difference_type n) : i(ist, n) {}
+ *
+ *iter::iter(const iter& copy)
+ *    : i(copy.i) {}
+ *
+ *iter::iter() {}
+ *
+ *value_type iter::operator*() const {
+ *  return ElfSectionHeader(*i);
+ *}
+ *
+ *value_type iter::operator[](difference_type n) const {
+ *  return operator+(n).operator*();
+ *}
+ *
+ *difference_type ElfBinary::iter::operator-(self const& rhs) {
+ *  return i - rhs.i;
+ *}
+ *
+ *self& iter::operator++() {
+ *  ++i;
+ *  return *this;
+ *}
+ *
+ *self iter::operator++(int) {
+ *  iter copy(*this);
+ *  ++i;
+ *  return copy;
+ *}
+ *
+ *self& iter::operator--() {
+ *  --i;
+ *  return *this;
+ *}
+ *
+ *self iter::operator--(int) {
+ *  iter copy(*this);
+ *  --i;
+ *  return copy;
+ *}
+ *
+ *self iter::operator+(difference_type n) const {
+ *  iter copy(*this);
+ *  copy += n;
+ *  return copy;
+ *}
+ *
+ *self iter::operator-(difference_type n) const {
+ *  iter copy(*this);
+ *  copy -= n;
+ *  return copy;
+ *}
+ *
+ *self& iter::operator+=(difference_type n) {
+ *  i += n;
+ *  return *this;
+ *}
+ *
+ *self& iter::operator-=(difference_type n) {
+ *  i -= n;
+ *  return *this;
+ *}
+ *
+ * // implement all the relative operators in terms of the delta
+ *bool operator==(iter const& lhs, iter const& rhs) {
+ *  return lhs - rhs == 0;
+ *}
+ *
+ *bool operator!=(iter const& lhs, iter const& rhs) {
+ *  return lhs - rhs != 0;
+ *}
+ *
+ *bool operator<(iter const& lhs, iter const& rhs) {
+ *  return lhs - rhs < 0;
+ *}
+ *
+ *bool operator<=(iter const& lhs, iter const& rhs) {
+ *  return lhs - rhs <= 0;
+ *}
+ *
+ *bool operator>(iter const& lhs, iter const& rhs) {
+ *  return lhs - rhs > 0;
+ *}
+ *
+ *bool operator>=(iter const& lhs, iter const& rhs) {
+ *  return lhs - rhs >= 0;
+ *}
+ */

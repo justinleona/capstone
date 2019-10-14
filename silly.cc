@@ -2,7 +2,6 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <vector>
 #include "capstone.h"
 #include "capstonebuilder.h"
 #include "elfbinary.h"
@@ -10,18 +9,6 @@
 #include "static_cast.h"
 
 using namespace std;
-
-void dumpBytes(uint8_t bytes[], size_t size, uint64_t offset) {
-  cout << hex << setfill('0') << setw(8) << (unsigned int)offset << ": ";
-  for (uint64_t i = 0; i != size; ++i) {
-    if (i > 0 && i % 16 == 0)
-      cout << endl << hex << setfill('0') << setw(8) << (unsigned int)(i + offset) << ": ";
-    else if (i > 0 && i % 2 == 0)
-      cout << " ";
-    cout << hex << setfill('0') << setw(2) << (unsigned int)bytes[i];
-  }
-  cout << endl;
-}
 
 /*
  * trivial decompiler for a block of raw bytes using the capstone library
@@ -36,11 +23,13 @@ int main() {
     cout << elf;
 
     const vector<char>& names = elf.getSectionNames(ist);
-    const vector<ElfSectionHeader>& sections = elf.getSections(ist);
 
     CapstoneBuilder csb;
     csb.setAtt();
-    for (const ElfSectionHeader& h : sections) {
+
+    ElfBinary::iter end;
+    for(ElfBinary::iter i = elf.getSections(ist); i!=end; ++i ) {
+      const ElfSectionHeader& h = *i;
       auto index = h.getNameIndex();
 
       cout << index << endl;

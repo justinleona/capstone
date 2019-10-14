@@ -8,13 +8,10 @@
 #include "elfsectiontype.h"
 
 class ElfSectionHeader : public Indentable {
-  const Elf64_Shdr& hdr;
-
+  Elf64_Shdr hdr;
  public:
-  ElfSectionHeader(Indent& indent, const Elf64_Shdr& hdr);
-  ElfSectionHeader(const Elf64_Shdr& hdr);
-
-  static ElfSectionHeader create(Indent& indent, const Elf64_Shdr& hdr);
+  ElfSectionHeader() {}
+  ElfSectionHeader(const Elf64_Shdr& hdr) : hdr(hdr) {}
 
   Elf64_Xword getSize() const;
   Elf64_Off getOffset() const;
@@ -33,4 +30,5 @@ class ElfSectionHeader : public Indentable {
   bool isExecutable() const;
 
   friend std::ostream& operator<<(std::ostream& ist, const ElfSectionHeader&);
+  //friend std::istream& operator>>(std::istream& ist, ElfSectionHeader& hdr);
 };

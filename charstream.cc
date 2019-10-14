@@ -1,16 +1,21 @@
 #include "charstream.h"
+#include <iomanip>
 
 using namespace std;
 
 charbuf::charbuf(char* s, size_t n) {
+  auto begin = s;
+  auto c = s;
+  auto end = s+n;
+
   // set begin, current, and end states for reading
-  setg(s, s, s + n);
-  setp(s,s+n);
+  setg(begin, c, end);
+  setp(c, end);
 }
 
 streampos charbuf::seekpos(streampos pos, ios_base::openmode which) {
   if (which & ios_base::in && which & ios_base::out) {
-    //we don't have separate buffers for in+out
+    // we don't have separate buffers for in+out
     char* begin = eback();
     char* c = begin + pos;
     char* end = egptr();
@@ -20,8 +25,7 @@ streampos charbuf::seekpos(streampos pos, ios_base::openmode which) {
       setp(c, end);
       return pos;
     }
-  }
-  else if (which & ios_base::in) {
+  } else if (which & ios_base::in) {
     char* begin = eback();
     char* c = begin + pos;
     char* end = egptr();
@@ -30,8 +34,7 @@ streampos charbuf::seekpos(streampos pos, ios_base::openmode which) {
       setg(begin, c, end);
       return pos;
     }
-  }
-  else if (which & ios_base::out) {
+  } else if (which & ios_base::out) {
     char* begin = pbase();
     char* c = begin + pos;
     char* end = epptr();
@@ -67,4 +70,18 @@ int charbuf::overflow(int c) {
 
 charstream::charstream(char* s, size_t n) : istream(&b), ostream(&b), b(s, n) {
   rdbuf(&b);
+}
+
+charstream::charstream(uint8_t* s, size_t n) :charstream((char*)s, n) {}
+
+void dumpBytes(uint8_t bytes[], size_t size, uint64_t offset) {
+  cout << hex << setfill('0') << setw(8) << (unsigned int)offset << ": ";
+  for (uint64_t i = 0; i != size; ++i) {
+    if (i > 0 && i % 16 == 0)
+      cout << endl << hex << setfill('0') << setw(8) << (unsigned int)(i + offset) << ": ";
+    else if (i > 0 && i % 2 == 0)
+      cout << " ";
+    cout << hex << setfill('0') << setw(2) << (unsigned int)bytes[i];
+  }
+  cout << endl;
 }
