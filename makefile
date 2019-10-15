@@ -22,7 +22,7 @@ $(EXE):$(SRC:%.cc=obj/%.o)
 $(CATCH):$(filter-out obj/silly.o, $(SRC:%.cc=obj/%.o)) $(TST:%.cc=obj/%.o)
 	$(CXX) $(LDFLAGS) $^ -o $(CATCH) $(LDLIBS)
 
-obj/%.o:%.cc
+obj/%.o:%.cc obj/%.d
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CFLAGS) -c $< -o $@
 
 # technically .d should depend on .cc and .h as well, this might occasionally necessitate full rebuilds
