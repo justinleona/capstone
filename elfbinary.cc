@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <range/v3/all.hpp>
 
 using namespace std;
 
@@ -51,7 +52,7 @@ ostream& operator<<(ostream& ost, const ElfBinary& elf) {
   return ost;
 }
 
-ElfBinary::iter ElfBinary::getSections(istream& ist) {
+meta::list<> ElfBinary::getSections(istream& ist) {
   auto section_table_count = header.e_shnum;
   ptrdiff_t section_offset = header.e_shoff;
 
@@ -66,7 +67,12 @@ ElfBinary::iter ElfBinary::getSections(istream& ist) {
   }
 
   ist.seekg(section_offset);
-  return charstream_iterator<Elf64_Shdr>(ist, section_table_count);
+
+  auto create = [](Elf64_Shdr& hdr) { return ElfSectionHeader(hdr); };
+  auto view = streamview<Elf64_Shdr>(ist) 
+    | ranges::views::transform(create);
+    | ranges::views::take(section_table_count);
+  return view;
 }
 
 // vector<string> ElfBinary::parseSectionNames(istream& ist) {
@@ -89,6 +95,7 @@ vector<char> ElfBinary::getSectionNames(istream& ist) {
   // needs to handle SHN_XINDEX
 
   auto headers = getSections(ist);
+
   const ElfSectionHeader& str_table = headers[section_table_index];
   auto offset = str_table.getOffset();
   auto size = str_table.getSize();

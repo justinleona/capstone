@@ -57,21 +57,25 @@ TEST_CASE("ElfBinary loads headers", "[elfbinary]") {
 
     // move to hdr stream
     ist = charstream(shdr, sizeof(shdr));
-    charstream_iterator<Elf64_Shdr> v = bin.getSections(ist);
+    streamview_iterator<Elf64_Shdr> v = bin.getSections(ist);
+    streamview_sentinel end;
+ 
+    //this creates a lot of copies, but should still work
+    REQUIRE(v[0].sh_offset == 0x0);
+    REQUIRE(v[0].sh_size == 0x0);
+    REQUIRE(v[1].sh_offset == 0x2a8);
+    REQUIRE(v[1].sh_size == 0x1c);
 
+    REQUIRE( v != end );
     ElfSectionHeader init(*v);
     REQUIRE( init.getOffset() == 0x0 );
     REQUIRE( init.getSize() == 0x0 );
 
-    //this creates a lot of copies, but should still work
-    //REQUIRE(v[0].sh_offset == 0x0);
-    //REQUIRE(v[0].sh_size == 0x0);
-    //REQUIRE(v[1].sh_offset == 0x2a8);
-    //REQUIRE(v[1].sh_size == 0x1c);
+    REQUIRE( ++v != end );
+    ElfSectionHeader hdr(*v);
+    REQUIRE( hdr.getOffset() == 0x2a8 );
+    REQUIRE( hdr.getSize() == 0x1c );
 
-    //++v;
-    //ElfSectionHeader hdr(*v);
-    //REQUIRE( hdr.getOffset() == 0x2a8 );
-    //REQUIRE( hdr.getSize() == 0x1c );
+    REQUIRE( ++v == end );
   }
 }

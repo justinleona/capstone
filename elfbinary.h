@@ -8,7 +8,8 @@
 #include <vector>
 #include "indent.h"
 #include "elfsectionheader.h"
-#include "charstream_iterator.h"
+#include "streamview.h"
+#include <range/v3/all.hpp>
 
 class ElfBinary : public Indentable {
   Elf64_Ehdr header;
@@ -20,11 +21,9 @@ class ElfBinary : public Indentable {
   size_t getSectionHeaderOffset();
   size_t getSectionHeaderCount();
   size_t getStringTableIndex();
-  
-  using iter = charstream_iterator<Elf64_Shdr>;
 
   /* range of sections, starting with the special "init" section */
-  iter getSections(std::istream& ist);
+  meta::list<> getSections(std::istream& ist);
 
   /** get the raw section names table including embedded null terminators */
   std::vector<char> getSectionNames(std::istream& ist);

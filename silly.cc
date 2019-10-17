@@ -27,7 +27,7 @@ int main() {
     CapstoneBuilder csb;
     csb.setAtt();
 
-    ElfBinary::iter end;
+    ElfBinary::sentinel end;
     for(ElfBinary::iter i = elf.getSections(ist); i!=end; ++i ) {
       const ElfSectionHeader& h = *i;
       auto index = h.getNameIndex();

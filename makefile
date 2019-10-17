@@ -1,6 +1,6 @@
 EXE = myapp
 CATCH = catch
-CXX := clang++ -std=c++2a
+CXX := clang++-9 -std=c++2a
 TST := $(wildcard *test.cc)
 SRC := $(filter-out $(TST), $(wildcard *.cc))
 
