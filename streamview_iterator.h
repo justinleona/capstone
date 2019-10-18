@@ -18,7 +18,7 @@ public:
 template <typename T>
 class streamview_iterator {
  public:
-  using iterator_category = std::random_access_iterator_tag;
+  using iterator_category = std::bidirectional_iterator_tag;
   using value_type = T;
   using difference_type = ptrdiff_t;
   using pointer = T*;
@@ -32,7 +32,6 @@ class streamview_iterator {
   ~streamview_iterator() = default;
 
   value_type operator*() const;
-  value_type operator[](difference_type n) const;
   difference_type operator-(self const& rhs) const;
 
   self& operator++();
@@ -50,7 +49,7 @@ class streamview_iterator {
   bool operator==(const self& rhs) const;
   bool operator==(const sentinel& rhs) const;
  private:
-  mutable std::istream* ist = NULL;
+  std::istream& ist;
   const int64_t g; //original position of the stream
   difference_type i = 0; //current relative to start
 };

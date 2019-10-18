@@ -23,7 +23,7 @@ class ElfBinary : public Indentable {
   size_t getStringTableIndex();
 
   /* range of sections, starting with the special "init" section */
-  meta::list<> getSections(std::istream& ist);
+  streamview<Elf64_Shdr> getSections(std::istream& ist);
 
   /** get the raw section names table including embedded null terminators */
   std::vector<char> getSectionNames(std::istream& ist);

@@ -2,14 +2,14 @@
 
 #include <iostream>
 #include <iterator>
-#include <range/v3/view/interface.hpp>
+//#include <range/v3/view/interface.hpp>
 #include "streamview_iterator.h"
 
 /**
  * Compose stream objects to allow pulling objecst off the stream with iterators
  */
 template <typename T>
-class streamview : public ranges::view_interface<T> {
+class streamview {
  public:
   using value_type = T;
   using difference_type = ptrdiff_t;
@@ -20,7 +20,7 @@ class streamview : public ranges::view_interface<T> {
   using const_iterator = streamview_iterator<T>;
   using sentinel = streamview_sentinel;
 
-  explicit streamview(std::istream&) : ist(&ist) {}
+  explicit streamview(std::istream& ist) : ist(ist) {}
 
   /**
    * Multiple iterators can operate on a stream, but may result in lots of seeks.  Any iterator
@@ -34,6 +34,6 @@ class streamview : public ranges::view_interface<T> {
     return sentinel();
   }
  private:
-  mutable std::istream* ist = NULL;
+  std::istream& ist;
 };
 

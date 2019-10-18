@@ -27,11 +27,13 @@ int main() {
     CapstoneBuilder csb;
     csb.setAtt();
 
-    ElfBinary::sentinel end;
-    for(ElfBinary::iter i = elf.getSections(ist); i!=end; ++i ) {
+    auto headers = elf.getSections(ist);
+    streamview<Elf64_Shdr>::sentinel&& end = headers.end();
+    for(streamview_iterator<Elf64_Shdr> i = headers.begin(); i != end; ++i)
+    {
       const ElfSectionHeader& h = *i;
       auto index = h.getNameIndex();
-      cout << h; 
+      cout << h;
 
       if (index >= names.size()) {
         throw "invalid name index";

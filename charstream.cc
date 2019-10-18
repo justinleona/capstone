@@ -60,7 +60,8 @@ long repos(streamoff pos, char* begin, char* cur, char* end, ios_base::seekdir w
 }
 
 streampos charbuf::seekoff(streamoff pos, ios_base::seekdir way, ios_base::openmode which) {
-  //cout << "seekoff(" << dec << pos << "," << way << ")" << endl;
+  //bool in = which & ios_base::openmode::_S_in;
+  //cout << "seekoff(" << dec << pos << "," << way << ", in=" << in << ")" << endl;
 
   // no separate begin/end - single array in memory
   char* begin = eback();
@@ -69,6 +70,8 @@ streampos charbuf::seekoff(streamoff pos, ios_base::seekdir way, ios_base::openm
   long poff = repos(pos, begin, pptr(), end, way);
   char *cg = gptr() + goff;
   char *cp = pptr() + poff;
+
+  //cout << "gptr=" << hex << (uint64_t)gptr() << " goffset=" << goff << endl;
 
   bool set = false;
   if (which & ios_base::in) {
@@ -85,7 +88,8 @@ streampos charbuf::seekoff(streamoff pos, ios_base::seekdir way, ios_base::openm
   }
 
   if (set) {
-    return goff;
+    //I think this value is wrong - it should be something like gptr() - begin?
+    return gptr() - begin;
   }
   return -1;
 }

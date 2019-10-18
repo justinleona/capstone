@@ -50,23 +50,30 @@ TEST_CASE("ElfBinary loads headers", "[elfbinary]") {
     moc.e_shoff -= off;
     moc.e_shnum = 2;    // init header + 1
     ist.write((char*)&moc, sizeof(Elf64_Ehdr));
+    REQUIRE( ist.good() );
 
     ist >> bin;
+    REQUIRE( ist.good() );
     REQUIRE(bin.getSectionHeaderCount() == 2);
     REQUIRE(bin.getSectionHeaderOffset() == 0x8);
 
     // move to hdr stream
     ist = charstream(shdr, sizeof(shdr));
-    streamview_iterator<Elf64_Shdr> v = bin.getSections(ist);
-    streamview_sentinel end;
+    REQUIRE( ist.good() );
+
+    streamview<Elf64_Shdr> headers = bin.getSections(ist);
+    streamview_iterator<Elf64_Shdr> v = headers.begin();
+    streamview_sentinel end = headers.end();
  
-    //this creates a lot of copies, but should still work
+    //this is problematic because the stream "moves" between iterator invocations
+    //this operates on copies, but stream should get appropriately reset?
     REQUIRE(v[0].sh_offset == 0x0);
     REQUIRE(v[0].sh_size == 0x0);
     REQUIRE(v[1].sh_offset == 0x2a8);
     REQUIRE(v[1].sh_size == 0x1c);
 
     REQUIRE( v != end );
+
     ElfSectionHeader init(*v);
     REQUIRE( init.getOffset() == 0x0 );
     REQUIRE( init.getSize() == 0x0 );
@@ -76,6 +83,10 @@ TEST_CASE("ElfBinary loads headers", "[elfbinary]") {
     REQUIRE( hdr.getOffset() == 0x2a8 );
     REQUIRE( hdr.getSize() == 0x1c );
 
+    cout << "ist: " << (ist.good()?"true":"false") << endl;
+    cout << "sizeof(shdr[]): " << sizeof(shdr) << endl;
+
+    //136 + 64 > 160, hence this should fail
     REQUIRE( ++v == end );
   }
 }
