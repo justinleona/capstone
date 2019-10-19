@@ -66,7 +66,7 @@ ostream& operator<<(ostream& ost, const ElfSectionHeader& h) {
   return ost << --i << "}" << endl;
 }
 
-// istream& operator>>(istream& ist, ElfSectionHeader& hdr) {
-// ist.read((char*)&hdr.hdr, sizeof(Elf64_Shdr));
-// return ist;
-//}
+istream& operator>>(istream& ist, ElfSectionHeader& hdr) {
+ ist.read((char*)&hdr.hdr, sizeof(Elf64_Shdr));
+ return ist;
+}

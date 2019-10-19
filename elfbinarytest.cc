@@ -61,18 +61,16 @@ TEST_CASE("ElfBinary loads headers", "[elfbinary]") {
     ist = charstream(shdr, sizeof(shdr));
     REQUIRE( ist.good() );
 
-    streamview<Elf64_Shdr> headers = bin.getSections(ist);
-    streamview_iterator<Elf64_Shdr> v = headers.begin();
-    streamview_sentinel end = headers.end();
+    const vector<Elf64_Shdr>& headers = bin.getSections();
+    auto v = headers.begin();
+    auto end = headers.end();
  
     //this is problematic because the stream "moves" between iterator invocations
     //this operates on copies, but stream should get appropriately reset?
-    REQUIRE(v[0].sh_offset == 0x0);
-    REQUIRE(v[0].sh_size == 0x0);
-    REQUIRE(v[1].sh_offset == 0x2a8);
-    REQUIRE(v[1].sh_size == 0x1c);
-
-    REQUIRE( v != end );
+    REQUIRE(headers[0].sh_offset == 0x0);
+    REQUIRE(headers[0].sh_size == 0x0);
+    REQUIRE(headers[1].sh_offset == 0x2a8);
+    REQUIRE(headers[1].sh_size == 0x1c);
 
     ElfSectionHeader init(*v);
     REQUIRE( init.getOffset() == 0x0 );

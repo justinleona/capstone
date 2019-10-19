@@ -8,12 +8,12 @@
 #include <vector>
 #include "indent.h"
 #include "elfsectionheader.h"
-#include "streamview.h"
-#include <range/v3/all.hpp>
+//#include <range/v3/all.hpp>
 
 class ElfBinary : public Indentable {
   Elf64_Ehdr header;
-
+  std::vector<Elf64_Shdr> sections;
+  std::vector<char> names;
  public:
   ElfBinary();
   ElfBinary(Indent& indent);
@@ -23,7 +23,7 @@ class ElfBinary : public Indentable {
   size_t getStringTableIndex();
 
   /* range of sections, starting with the special "init" section */
-  streamview<Elf64_Shdr> getSections(std::istream& ist);
+  const std::vector<Elf64_Shdr>& getSections();
 
   /** get the raw section names table including embedded null terminators */
   std::vector<char> getSectionNames(std::istream& ist);

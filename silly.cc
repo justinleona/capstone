@@ -27,9 +27,9 @@ int main() {
     CapstoneBuilder csb;
     csb.setAtt();
 
-    auto headers = elf.getSections(ist);
-    streamview<Elf64_Shdr>::sentinel&& end = headers.end();
-    for(streamview_iterator<Elf64_Shdr> i = headers.begin(); i != end; ++i)
+    const vector<Elf64_Shdr>& headers = elf.getSections();
+    vector<Elf64_Shdr>::const_iterator end = headers.end();
+    for(vector<Elf64_Shdr>::const_iterator i = headers.begin(); i != end; ++i)
     {
       const ElfSectionHeader& h = *i;
       auto index = h.getNameIndex();

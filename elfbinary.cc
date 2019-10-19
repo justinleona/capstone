@@ -33,6 +33,25 @@ istream& operator>>(istream& ist, ElfBinary& elf) {
     throw "failed to read complete Elf header";
   if (hdr.e_ident[0] != 0x7f || hdr.e_ident[1] != 'E' || hdr.e_ident[2] != 'L' || hdr.e_ident[3] != 'F')
     throw "magic string failed";
+
+  auto section_table_count = hdr.e_shnum;
+  auto section_offset = hdr.e_shoff;
+
+  Elf64_Shdr init;
+  ist.seekg(section_offset);
+  ist.read((char*)&init, sizeof(Elf64_Shdr));
+  if (section_table_count == 0x0) {
+    section_table_count = init.sh_size;
+  }
+  elf.sections.push_back(init);
+
+  for(int i=1; i<section_table_count; ++i) 
+  {
+    Elf64_Shdr s;
+    ist.read((char*)&s, sizeof(Elf64_Shdr));
+    elf.sections.push_back(s);
+  }
+
   return ist;
 }
 
@@ -52,22 +71,8 @@ ostream& operator<<(ostream& ost, const ElfBinary& elf) {
   return ost;
 }
 
-streamview<Elf64_Shdr> ElfBinary::getSections(istream& ist) {
-  auto section_table_count = header.e_shnum;
-  ptrdiff_t section_offset = header.e_shoff;
-
-  //cout << "getSections(" << dec << section_table_count << ", 0x" << hex << section_offset << ")" << endl;
-
-  // special section for large numbers of headers
-  Elf64_Shdr init;
-  ist.seekg(section_offset);
-  ist.read((char*)&init, sizeof(Elf64_Shdr));
-  if (section_table_count == 0x0) {
-    section_table_count = init.sh_size;
-  }
-
-  ist.seekg(section_offset);
-  return streamview<Elf64_Shdr>(ist);
+const vector<Elf64_Shdr>& ElfBinary::getSections() {
+  return sections;
 }
 
 // vector<string> ElfBinary::parseSectionNames(istream& ist) {
@@ -89,10 +94,7 @@ vector<char> ElfBinary::getSectionNames(istream& ist) {
 
   // needs to handle SHN_XINDEX
 
-  auto headers = getSections(ist);
-  auto init = headers.begin();
-
-  const ElfSectionHeader& str_table = init[section_table_index];
+  const ElfSectionHeader& str_table = sections[section_table_index];
   auto offset = str_table.getOffset();
   auto size = str_table.getSize();
 
@@ -101,100 +103,3 @@ vector<char> ElfBinary::getSectionNames(istream& ist) {
   ist.read(section_names.data(), size);
   return section_names;
 }
-
-/*
- *using iter = ElfBinary::iter;
- *using value_type = ElfSectionHeader;
- *using difference_type = ptrdiff_t;
- *using pointer = ElfSectionHeader*;
- *using reference = ElfSectionHeader&;
- *using self = ElfBinary::iter;
- *
- *iter::iter(istream& ist, difference_type n) : i(ist, n) {}
- *
- *iter::iter(const iter& copy)
- *    : i(copy.i) {}
- *
- *iter::iter() {}
- *
- *value_type iter::operator*() const {
- *  return ElfSectionHeader(*i);
- *}
- *
- *value_type iter::operator[](difference_type n) const {
- *  return operator+(n).operator*();
- *}
- *
- *difference_type ElfBinary::iter::operator-(self const& rhs) {
- *  return i - rhs.i;
- *}
- *
- *self& iter::operator++() {
- *  ++i;
- *  return *this;
- *}
- *
- *self iter::operator++(int) {
- *  iter copy(*this);
- *  ++i;
- *  return copy;
- *}
- *
- *self& iter::operator--() {
- *  --i;
- *  return *this;
- *}
- *
- *self iter::operator--(int) {
- *  iter copy(*this);
- *  --i;
- *  return copy;
- *}
- *
- *self iter::operator+(difference_type n) const {
- *  iter copy(*this);
- *  copy += n;
- *  return copy;
- *}
- *
- *self iter::operator-(difference_type n) const {
- *  iter copy(*this);
- *  copy -= n;
- *  return copy;
- *}
- *
- *self& iter::operator+=(difference_type n) {
- *  i += n;
- *  return *this;
- *}
- *
- *self& iter::operator-=(difference_type n) {
- *  i -= n;
- *  return *this;
- *}
- *
- * // implement all the relative operators in terms of the delta
- *bool operator==(iter const& lhs, iter const& rhs) {
- *  return lhs - rhs == 0;
- *}
- *
- *bool operator!=(iter const& lhs, iter const& rhs) {
- *  return lhs - rhs != 0;
- *}
- *
- *bool operator<(iter const& lhs, iter const& rhs) {
- *  return lhs - rhs < 0;
- *}
- *
- *bool operator<=(iter const& lhs, iter const& rhs) {
- *  return lhs - rhs <= 0;
- *}
- *
- *bool operator>(iter const& lhs, iter const& rhs) {
- *  return lhs - rhs > 0;
- *}
- *
- *bool operator>=(iter const& lhs, iter const& rhs) {
- *  return lhs - rhs >= 0;
- *}
- */

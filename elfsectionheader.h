@@ -30,5 +30,5 @@ class ElfSectionHeader : public Indentable {
   bool isExecutable() const;
 
   friend std::ostream& operator<<(std::ostream& ist, const ElfSectionHeader&);
-  //friend std::istream& operator>>(std::istream& ist, ElfSectionHeader& hdr);
+  friend std::istream& operator>>(std::istream& ist, ElfSectionHeader& hdr);
 };
