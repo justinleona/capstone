@@ -3,7 +3,7 @@
 
 using namespace std;
 
-charbuf::charbuf(char* s, size_t n) {
+charbuf::charbuf(char* s, size_t n, size_t offset) : offset(offset) {
   auto begin = s;
   auto c = s;
   auto end = s + n;
@@ -14,32 +14,11 @@ charbuf::charbuf(char* s, size_t n) {
 }
 
 streampos charbuf::seekpos(streampos pos, ios_base::openmode which) {
-  // create position from offset 0 from beginning
-  const pos_type& rel = pos - pos_type(off_type(0));
+  const pos_type& rel = pos - pos_type(off_type(offset));
+
+  bool in = which & ios_base::openmode::_S_in;
+  cout << "seekpos(" << hex << pos << ", in=" << in << ")" << endl;
   return seekoff(rel, ios_base::beg, which);
-
-  // char* begin = eback();
-  // char* cg = gptr() + pos;
-  // char* cp = pptr() + pos;
-  // char* end = egptr();
-
-  // bool set = false;
-  // if (which & ios_base::in) {
-  // if (begin <= cg && cg < end) {
-  // gbump(pos);
-  // set = true;
-  //}
-  //} else if (which & ios_base::out) {
-  // if (begin <= cp && cp < end) {
-  // pbump(pos);
-  // set = true;
-  //}
-  //}
-
-  // if (set) {
-  // return pos;
-  //}
-  // return -1;
 }
 
 long repos(streamoff pos, char* begin, char* cur, char* end, ios_base::seekdir way) {
@@ -60,18 +39,18 @@ long repos(streamoff pos, char* begin, char* cur, char* end, ios_base::seekdir w
 }
 
 streampos charbuf::seekoff(streamoff pos, ios_base::seekdir way, ios_base::openmode which) {
-  //bool in = which & ios_base::openmode::_S_in;
-  //cout << "seekoff(" << dec << pos << "," << way << ", in=" << in << ")" << endl;
+  bool in = which & ios_base::openmode::_S_in;
+  cout << "seekoff(" << hex << pos << "," << way << ", in=" << in << ")" << endl;
 
   // no separate begin/end - single array in memory
   char* begin = eback();
   char* end = egptr();
   long goff = repos(pos, begin, gptr(), end, way);
   long poff = repos(pos, begin, pptr(), end, way);
-  char *cg = gptr() + goff;
-  char *cp = pptr() + poff;
+  char* cg = gptr() + goff;
+  char* cp = pptr() + poff;
 
-  //cout << "gptr=" << hex << (uint64_t)gptr() << " goffset=" << goff << endl;
+  // cout << "gptr=" << hex << (uint64_t)gptr() << " goffset=" << goff << endl;
 
   bool set = false;
   if (which & ios_base::in) {
@@ -88,7 +67,6 @@ streampos charbuf::seekoff(streamoff pos, ios_base::seekdir way, ios_base::openm
   }
 
   if (set) {
-    //I think this value is wrong - it should be something like gptr() - begin?
     return gptr() - begin;
   }
   return -1;
@@ -115,11 +93,11 @@ int charbuf::overflow(int c) {
   throw "overflow not yet implemented!";
 }
 
-charstream::charstream(char* s, size_t n) : istream(&b), ostream(&b), b(s, n) {
+charstream::charstream(char* s, size_t n, size_t offset) : istream(&b), ostream(&b), b(s, n, offset) {
   rdbuf(&b);
 }
 
-charstream::charstream(uint8_t* s, size_t n) : charstream((char*)s, n) {}
+charstream::charstream(uint8_t* s, size_t n, size_t offset) : charstream((char*)s, n, offset) {}
 
 void dumpBytes(uint8_t bytes[], size_t size, uint64_t offset) {
   cout << hex << setfill('0') << setw(8) << (unsigned int)offset << ": ";

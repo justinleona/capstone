@@ -56,6 +56,15 @@ bool ElfSectionHeader::isExecutable() const {
   return hdr.sh_flags & SHF_EXECINSTR;
 }
 
+void ElfSectionHeader::setName(const string& str) 
+{
+  this->n = str;
+}
+
+const string& ElfSectionHeader::name() const {
+  return n;
+}
+
 ostream& operator<<(ostream& ost, const ElfSectionHeader& h) {
   Indent& i = h.indent;
   ost << i++ << "Elf Section Header {" << endl;

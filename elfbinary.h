@@ -1,32 +1,19 @@
 #pragma once
 
 #include <elf.h>
-#include <istream>
-#include <iterator>
-#include <ostream>
-#include <string>
-#include <vector>
+#include <iostream>
 #include "indent.h"
-#include "elfsectionheader.h"
 //#include <range/v3/all.hpp>
 
 class ElfBinary : public Indentable {
   Elf64_Ehdr header;
-  std::vector<Elf64_Shdr> sections;
-  std::vector<char> names;
  public:
   ElfBinary();
   ElfBinary(Indent& indent);
 
-  size_t getSectionHeaderOffset();
-  size_t getSectionHeaderCount();
-  size_t getStringTableIndex();
-
-  /* range of sections, starting with the special "init" section */
-  const std::vector<Elf64_Shdr>& getSections();
-
-  /** get the raw section names table including embedded null terminators */
-  std::vector<char> getSectionNames(std::istream& ist);
+  size_t getSectionHeaderOffset() const;
+  size_t getSectionHeaderCount() const;
+  size_t getStringTableIndex() const;
 
   friend std::ostream& operator<<(std::ostream& ost, const ElfBinary& header);
   friend std::istream& operator>>(std::istream& ist, ElfBinary& header);

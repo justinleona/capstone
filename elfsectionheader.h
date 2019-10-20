@@ -9,6 +9,7 @@
 
 class ElfSectionHeader : public Indentable {
   Elf64_Shdr hdr;
+  std::string n;
  public:
   ElfSectionHeader() {}
   ElfSectionHeader(const Elf64_Shdr& hdr) : hdr(hdr) {}
@@ -28,6 +29,9 @@ class ElfSectionHeader : public Indentable {
   bool isDynamic() const;
   bool isWritable() const;
   bool isExecutable() const;
+
+  void setName(const std::string& name);
+  const std::string& name() const;
 
   friend std::ostream& operator<<(std::ostream& ist, const ElfSectionHeader&);
   friend std::istream& operator>>(std::istream& ist, ElfSectionHeader& hdr);
