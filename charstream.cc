@@ -1,5 +1,7 @@
 #include "charstream.h"
 #include <iomanip>
+#include "not_implemented.h"
+#include "stacktracehandler.h"
 
 using namespace std;
 
@@ -15,6 +17,8 @@ charbuf::charbuf(char* s, size_t n, size_t offset) : offset(offset) {
 
 streampos charbuf::seekpos(streampos pos, ios_base::openmode which) {
   const pos_type& rel = pos - pos_type(off_type(offset));
+
+  StackTraceHandler::printTrace();
 
   bool in = which & ios_base::openmode::_S_in;
   cout << "seekpos(" << hex << pos << ", in=" << in << ")" << endl;
@@ -74,23 +78,23 @@ streampos charbuf::seekoff(streamoff pos, ios_base::seekdir way, ios_base::openm
 
 // below are implemented so we know if we're using features we'd expect to provide but don't!
 streambuf* charbuf::setbuf(char* s, streamsize n) {
-  cerr << "setbuf not yet implemented" << endl;
-  throw "setbuf not yet implemented!";
+  // cerr << "setbuf not yet implemented" << endl;
+  throw not_implemented{"setbuf not yet implemented!"};
 }
 
 int charbuf::underflow() {
-  cerr << "underflow not yet implemented" << endl;
-  throw "underflow not yet implemented!";
+  // cerr << "underflow not yet implemented" << endl;
+  throw not_implemented{"underflow not yet implemented!"};
 }
 
 int charbuf::pbackfail(int c) {
-  cerr << "pbackfail not yet implemented" << endl;
-  throw "pbackfail not yet implemented!";
+  // cerr << "pbackfail not yet implemented" << endl;
+  throw not_implemented{"pbackfail not yet implemented!"};
 }
 
 int charbuf::overflow(int c) {
-  cerr << "overflow not yet implemented" << endl;
-  throw "overflow not yet implemented!";
+  // cerr << "overflow not yet implemented" << endl;
+  throw not_implemented{"overflow not yet implemented!"};
 }
 
 charstream::charstream(char* s, size_t n, size_t offset) : istream(&b), ostream(&b), b(s, n, offset) {

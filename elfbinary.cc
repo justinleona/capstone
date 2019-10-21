@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <range/v3/all.hpp>
 
 using namespace std;
 

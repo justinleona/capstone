@@ -1,20 +1,19 @@
-#include <algorithm>
 #include <fstream>
-#include <iomanip>
 #include <iostream>
-#include "capstone.h"
 #include "capstonebuilder.h"
-#include "elfbinary.h"
 #include "elfsectionheaders.h"
 #include "indent.h"
-#include "static_cast.h"
+#include "stacktracehandler.h"
 
 using namespace std;
+
 
 /*
  * trivial decompiler for a block of raw bytes using the capstone library
  */
 int main() {
+  StackTraceHandler handler;
+
   try {
     ifstream ist("/usr/bin/ls", ifstream::binary);
 
@@ -48,8 +47,14 @@ int main() {
       }
     }
     return 0;
+  } catch (const exception& e) {
+    cerr << e.what() << endl;
+    return 1;
   } catch (char const* msg) {
     cerr << msg << endl;
+    return 1;
+  } catch (...) {
+    cerr << "unknown exception caught" << endl;
     return 1;
   }
 }

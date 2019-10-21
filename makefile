@@ -1,12 +1,12 @@
 EXE = myapp
 CATCH = catch
-CXX := clang++ -std=c++2a
+CXX := clang++ -std=c++2a -fmodules
 TST := $(wildcard *test.cc)
 SRC := $(filter-out $(TST), $(wildcard *.cc))
 
-CPPFLAGS += -glldb -gfull
+CPPFLAGS += -glldb
 LDFLAGS += -no-pie
-LDLIBS += -lcapstone
+LDLIBS += -lcapstone -rdynamic
 
 .PHONY: all test clean
 

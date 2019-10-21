@@ -3,7 +3,6 @@
 #include <elf.h>
 #include <iostream>
 #include "indent.h"
-//#include <range/v3/all.hpp>
 
 class ElfBinary : public Indentable {
   Elf64_Ehdr header;

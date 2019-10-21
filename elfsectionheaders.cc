@@ -43,7 +43,6 @@ istream& operator>>(istream& ist, ElfSectionHeaders& headers) {
   for (uint64_t i = 1; i < section_table_count; ++i) {
     ElfSectionHeader s;
     ist >> s;
-    cout << s;
     sections.push_back(s);
   }
   if (!ist.good())
