@@ -1,4 +1,6 @@
 #include "elfsectionheaders.h"
+#include "stacktracehandler.h"
+#include "traceexception.h"
 
 using namespace std;
 using const_iterator = ElfSectionHeaders::const_iterator;
@@ -32,7 +34,7 @@ istream& operator>>(istream& ist, ElfSectionHeaders& headers) {
 
   ist.seekg(section_offset);
   if (!ist.good())
-    throw "end of stream encountered before init header";
+    throw trace_exception("end of stream encountered before init header");
 
   ElfSectionHeader init;
   ist >> init;
@@ -46,27 +48,26 @@ istream& operator>>(istream& ist, ElfSectionHeaders& headers) {
     sections.push_back(s);
   }
   if (!ist.good())
-    throw "failed to read section headers";
+    throw trace_exception("failed to read section headers");
 
   // needs to handle SHN_XINDEX
   const ElfSectionHeader& str_table = sections.at(section_table_index);
   auto offset = str_table.getOffset();
   auto size = str_table.getSize();
 
-  cout << "str_table: " << str_table;
-
   // read the names table and parse them into the headers
   char names[size];
   ist.seekg(offset);
   ist.read(names, size);
-  if (!ist.good())
-    throw "failed to read section names table";
+  if (!ist.good()) {
+    throw trace_exception("failed to read section names table");
+  }
 
   for (ElfSectionHeader& s : sections) {
     auto index = s.getNameIndex();
     if (index >= size) {
       cerr << index << endl;
-      throw "invalid name index";
+      throw trace_exception("invalid name index");
     }
     string name(&names[index]);
     s.setName(name);

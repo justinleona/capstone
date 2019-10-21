@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include "traceexception.h"
 
 using namespace std;
 
@@ -29,9 +30,9 @@ istream& operator>>(istream& ist, ElfBinary& elf) {
   ist.read((char*)&hdr, sizeof(Elf64_Ehdr));
 
   if (!ist)
-    throw "failed to read complete Elf header";
+    throw trace_exception("failed to read complete Elf header");
   if (hdr.e_ident[0] != 0x7f || hdr.e_ident[1] != 'E' || hdr.e_ident[2] != 'L' || hdr.e_ident[3] != 'F')
-    throw "magic string failed";
+    throw trace_exception("magic string failed");
   return ist;
 }
 

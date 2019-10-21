@@ -3,6 +3,7 @@
 #include "charstream.h"
 #include "elfbinary.h"
 #include "elfsectionheaders.h"
+#include "traceexception.h"
 
 using namespace std;
 
@@ -15,7 +16,7 @@ TEST_CASE("ElfBinary loads headers", "[elfbinary]") {
               0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x38, 0x00, 0x0b, 0x00, 0x40, 0x00, 0x1d, 0x00, 0x1c, 0x00};
 
   // strtab at 0x2161c-21726, shdr at 0x21728-21e68
-  uint64_t off = 0x21610;
+  uint64_t off = 0x21600;
   uint8_t shdr[]{
       0x39, 0x64, 0x63, 0x65, 0x33, 0x33, 0x30, 0x36, 0x61, 0x31, 0x36, 0x35, 0x33, 0x30, 0x2e, 0x64, 0x65, 0x62, 0x75,
       0x67, 0x00, 0x00, 0x00, 0x00, 0x58, 0x92, 0x30, 0xeb, 0x00, 0x2e, 0x73, 0x68, 0x73, 0x74, 0x72, 0x74, 0x61, 0x62,
@@ -132,48 +133,188 @@ TEST_CASE("ElfBinary loads headers", "[elfbinary]") {
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x0a};
 
-  ElfBinary bin;
-  SECTION("verify magic number mismatch") {
-    // chew a byte to screw up the ELF magic string
-    charstream ist(s, sizeof(s));
-    s[1] = 0x4c;
-    CHECK_THROWS((ist >> bin));
-  }
-
-  SECTION("verify magic number match") {
-    charstream ist(s, sizeof(s));
-    ist >> bin;
-
-    REQUIRE(bin.getSectionHeaderOffset() == 137000);
-    REQUIRE(bin.getSectionHeaderCount() == 29);
-    REQUIRE(bin.getStringTableIndex() == 28);
-  }
-
-  SECTION("verify headers loading") {
-    {
+  try {
+    ElfBinary bin;
+    SECTION("verify magic number mismatch") {
+      // chew a byte to screw up the ELF magic string
       charstream ist(s, sizeof(s));
-      ist >> bin;
+      s[1] = 0x4c;
+      CHECK_THROWS((ist >> bin));
     }
 
-    // move to hdr stream
-    charstream ist(shdr, sizeof(shdr), off);
-    REQUIRE(ist.good());
+    SECTION("verify magic number match") {
+      charstream ist(s, sizeof(s));
+      ist >> bin;
 
-    ElfSectionHeaders headers(bin);
-    ist >> headers;
+      REQUIRE(bin.getSectionHeaderOffset() == 137000);
+      REQUIRE(bin.getSectionHeaderCount() == 29);
+      REQUIRE(bin.getStringTableIndex() == 28);
+    }
 
-    auto v = headers.begin();
-    auto end = headers.end();
+    SECTION("verify headers loading") {
+      {
+        charstream ist(s, sizeof(s));
+        ist >> bin;
+      }
 
-    ElfSectionHeader init(*v);
-    REQUIRE(init.getOffset() == 0x0);
-    REQUIRE(init.getSize() == 0x0);
+      // move to hdr stream
+      charstream ist(shdr, sizeof(shdr), off);
+      REQUIRE(ist.good());
 
-    REQUIRE(++v != end);
-    ElfSectionHeader hdr(*v);
-    REQUIRE(hdr.getOffset() == 0x2a8);
-    REQUIRE(hdr.getSize() == 0x1c);
+      ElfSectionHeaders headers(bin);
+      ist >> headers;
 
-    REQUIRE(++v == end);
+      auto v = headers.begin();
+      auto end = headers.end();
+
+      REQUIRE(v != end);
+      REQUIRE(v->name() == "");
+      REQUIRE(v->getOffset() == 0x0);
+      REQUIRE(v->getSize() == 0x0);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".interp");
+      REQUIRE(v->getOffset() == 0x2a8);
+      REQUIRE(v->getSize() == 0x1c);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".note.gnu.build-id");
+      REQUIRE(v->getOffset() == 0x2c4);
+      REQUIRE(v->getSize() == 0x24);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".note.ABI-tag");
+      REQUIRE(v->getOffset() == 0x002e8);
+      REQUIRE(v->getSize() == 0x00020);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".gnu.hash");
+      REQUIRE(v->getOffset() == 0x00308);
+      REQUIRE(v->getSize() == 0x000ac);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".dynsym");
+      REQUIRE(v->getOffset() == 0x003b8);
+      REQUIRE(v->getSize() == 0x00c18);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".dynstr");
+      REQUIRE(v->getOffset() == 0x00fd0);
+      REQUIRE(v->getSize() == 0x005b4);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".gnu.version");
+      REQUIRE(v->getOffset() == 0x01584);
+      REQUIRE(v->getSize() == 0x00102);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".gnu.version_r");
+      REQUIRE(v->getOffset() == 0x01688);
+      REQUIRE(v->getSize() == 0x00070);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".rela.dyn");
+      REQUIRE(v->getOffset() == 0x016f8);
+      REQUIRE(v->getSize() == 0x01350);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".rela.plt");
+      REQUIRE(v->getOffset() == 0x02a48);
+      REQUIRE(v->getSize() == 0x009f0);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".init");
+      REQUIRE(v->getOffset() == 0x04000);
+      REQUIRE(v->getSize() == 0x00017);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".plt");
+      REQUIRE(v->getOffset() == 0x04020);
+      REQUIRE(v->getSize() == 0x006b0);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".plt.got");
+      REQUIRE(v->getOffset() == 0x046d0);
+      REQUIRE(v->getSize() == 0x00018);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".text");
+      REQUIRE(v->getOffset() == 0x046f0);
+      REQUIRE(v->getSize() == 0x1254e);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".fini");
+      REQUIRE(v->getOffset() == 0x16c40);
+      REQUIRE(v->getSize() == 0x00009);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".rodata");
+      REQUIRE(v->getOffset() == 0x17000);
+      REQUIRE(v->getSize() == 0x05129);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".eh_frame_hdr");
+      REQUIRE(v->getOffset() == 0x1c12c);
+      REQUIRE(v->getSize() == 0x008fc);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".eh_frame");
+      REQUIRE(v->getOffset() == 0x1ca28);
+      REQUIRE(v->getSize() == 0x02ee8);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".init_array");
+      REQUIRE(v->getOffset() == 0x20390);
+      REQUIRE(v->getSize() == 0x00008);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".fini_array");
+      REQUIRE(v->getOffset() == 0x20398);
+      REQUIRE(v->getSize() == 0x00008);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".data.rel.ro");
+      REQUIRE(v->getOffset() == 0x203a0);
+      REQUIRE(v->getSize() == 0x00a38);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".dynamic");
+      REQUIRE(v->getOffset() == 0x20dd8);
+      REQUIRE(v->getSize() == 0x001f0);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".got");
+      REQUIRE(v->getOffset() == 0x20fc8);
+      REQUIRE(v->getSize() == 0x00038);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".got.plt");
+      REQUIRE(v->getOffset() == 0x21000);
+      REQUIRE(v->getSize() == 0x00368);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".data");
+      REQUIRE(v->getOffset() == 0x21380);
+      REQUIRE(v->getSize() == 0x00268);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".bss");
+      REQUIRE(v->getOffset() == 0x215e8);
+      REQUIRE(v->getSize() == 0x012d8);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".gnu_debuglink");
+      REQUIRE(v->getOffset() == 0x215e8);
+      REQUIRE(v->getSize() == 0x00034);
+
+      REQUIRE(++v != end);
+      REQUIRE(v->name() == ".shstrtab");
+      REQUIRE(v->getOffset() == 0x2161c);
+      REQUIRE(v->getSize() == 0x0010a);
+    }
+  } catch (const trace_exception& e) {
+    cerr << e.what() << endl;
+    cerr << e.trace() << endl;
+    throw e;
   }
 }

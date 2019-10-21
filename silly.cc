@@ -4,9 +4,9 @@
 #include "elfsectionheaders.h"
 #include "indent.h"
 #include "stacktracehandler.h"
+#include "traceexception.h"
 
 using namespace std;
-
 
 /*
  * trivial decompiler for a block of raw bytes using the capstone library
@@ -47,14 +47,9 @@ int main() {
       }
     }
     return 0;
-  } catch (const exception& e) {
+  } catch (const trace_exception& e) {
     cerr << e.what() << endl;
-    return 1;
-  } catch (char const* msg) {
-    cerr << msg << endl;
-    return 1;
-  } catch (...) {
-    cerr << "unknown exception caught" << endl;
+    cerr << e.trace() << endl;
     return 1;
   }
 }

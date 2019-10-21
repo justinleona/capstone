@@ -1,7 +1,6 @@
 #include "charstream.h"
 #include <iomanip>
-#include "not_implemented.h"
-#include "stacktracehandler.h"
+#include "notimplemented.h"
 
 using namespace std;
 
@@ -17,8 +16,6 @@ charbuf::charbuf(char* s, size_t n, size_t offset) : offset(offset) {
 
 streampos charbuf::seekpos(streampos pos, ios_base::openmode which) {
   const pos_type& rel = pos - pos_type(off_type(offset));
-
-  StackTraceHandler::printTrace();
 
   bool in = which & ios_base::openmode::_S_in;
   cout << "seekpos(" << hex << pos << ", in=" << in << ")" << endl;
