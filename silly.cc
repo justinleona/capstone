@@ -3,7 +3,7 @@
 #include "capstonebuilder.h"
 #include "elfsectionheaders.h"
 #include "indent.h"
-#include "stacktracehandler.h"
+#include "tracehandler.h"
 #include "traceexception.h"
 
 using namespace std;
